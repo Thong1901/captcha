@@ -21,6 +21,9 @@ importers:
       '@types/node':
         specifier: latest
         version: 26.6.5
+      dotenv:
+        specifier: ^18.0.7
+        version: 18.0.7
       drizzle-kit:
         specifier: ^0.31.11
         version: 0.31.11
@@ -771,6 +774,11 @@ packages:
     resolution: {integrity: sha512-Btj2BOOO83o3WyH59e8MgXsxEQVcarkUOpEYrubB0urwnN10yQ364rsiByU11nZlqWYZm05i/of7io4mzihBtQ==}
     engines: {node: '>=8'}
 
+  dotenv@18.0.7:
+    resolution: {integrity: sha512-QEvMEF8ca3GNZJJnAbOgxpj5ULhBvnMcURp+XKrtvqFNPgjBvYoswQ0Jl2cO7JzCjxZjJhr9ZuIEhlrRxMft/Q==}
+    engines: {node: '>=12'}
+    hasBin: true
+
   drizzle-kit@0.31.11:
     resolution: {integrity: sha512-YCYqxTLIB2OCqf6w9/Vef13baBVbwQIPcbT4Y56AfO6B9ajZhDhD8Jkveg/hJvT/iuMloKD/IYYkyMMNhr7Kqg==}
     hasBin: true
@@ -1515,6 +1523,8 @@ snapshots:
   db0@0.4.1: {}
 
   detect-libc@2.1.2: {}
+
+  dotenv@18.0.7: {}
 
   drizzle-kit@0.31.11:
     dependencies:
