@@ -1,3 +1,3 @@
 import { setupApp } from "./app";
 
-setupApp(document.querySelector<HTMLElement>("#app")!);
+void setupApp(document.querySelector<HTMLElement>("#app")!);

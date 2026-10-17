@@ -2,6 +2,51 @@
 name: captcha
 
 services:
+  app:
+    build:
+      context: ./nitro-app
+    image: captcha-app:local
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-captcha}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@postgres:5432/${POSTGRES_DB:-captcha}
+      REDIS_URL: redis://redis:6379
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      FACE_API_KEY: ${FACE_API_KEY:-}
+      FACE_API_SECRET: ${FACE_API_SECRET:-}
+      PRIVATE_FILES_DIR: /app/private-files
+      APP_ORIGIN: ${APP_ORIGIN:-http://localhost:3000}
+    ports:
+      - "127.0.0.1:${APP_PORT:-3000}:3000"
+    volumes:
+      - private_files_data:/app/private-files
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r => { if (!r.ok) process.exit(1) }).catch(() => process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 10s
+    networks:
+      - captcha-internal
+      - captcha-public
+
+  migrate:
+    image: captcha-app:local
+    pull_policy: never
+    command: ["node", ".output/migrate.mjs"]
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-captcha}:${POSTGRES_PASSWORD:?POSTGRES_PASSWORD is required}@postgres:5432/${POSTGRES_DB:-captcha}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+    networks:
+      - captcha-internal
+
   postgres:
     image: postgres:17-alpine
     container_name: captcha-postgres
@@ -24,6 +69,7 @@ services:
       start_period: 10s
     networks:
       - captcha-internal
+      - captcha-host
 
   redis:
     image: redis:8-alpine
@@ -49,8 +95,13 @@ services:
 volumes:
   postgres_data:
   redis_data:
+  private_files_data:
 
 networks:
+  captcha-public:
+    driver: bridge
+  captcha-host:
+    driver: bridge
   captcha-internal:
     driver: bridge
     internal: true

@@ -1,7 +1,7 @@
 import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
-import { getServerConfig } from "../utils/config";
-import * as schema from "../../database/schema";
+import { getServerConfig } from "../utils/config.ts";
+import * as schema from "../../database/schema/index.ts";
 
 let client: ReturnType<typeof postgres> | undefined;
 let database: ReturnType<typeof drizzle<typeof schema>> | undefined;

@@ -2,16 +2,19 @@
   "type": "module",
   "scripts": {
     "build": "vite build",
+    "build:migrate": "esbuild scripts/migrate.ts --bundle --platform=node --format=esm --target=node22 --outfile=.output/migrate.mjs",
     "dev": "vite dev",
     "preview": "vite preview",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:check": "drizzle-kit check"
+    "db:check": "drizzle-kit check",
+    "test:integration": "node --experimental-strip-types --test tests/integration/*.test.mjs"
   },
   "devDependencies": {
     "@types/node": "latest",
     "dotenv": "^18.0.7",
     "drizzle-kit": "^0.31.11",
+    "esbuild": "^0.28.2",
     "jiti": "^2.7.0",
     "nitro": "latest",
     "typescript": "latest",
@@ -19,7 +22,9 @@
   },
   "dependencies": {
     "drizzle-orm": "^0.45.4",
+    "google-auth-library": "^11.3.0",
     "postgres": "^3.4.9",
-    "redis": "^6.3.0"
+    "redis": "^6.3.0",
+    "sharp": "^0.35.5"
   }
 }

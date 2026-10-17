@@ -1,0 +1,11 @@
+node_modules
+.output
+.nitro
+.cache
+.env
+.env.*
+*.log
+docs
+infra
+tests
+.git

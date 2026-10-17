@@ -1,114 +1,130 @@
-export function setupApp(element: HTMLElement) {
-  element.replaceChildren();
+import { createFaceCamera } from "./face-camera.ts";
+import { createProfileArea } from "./profile-area.ts";
 
+type User = { id: string; email: string; name: string | null };
+type SessionResponse = { authenticated: boolean; user: User | null };
+
+declare global {
+  interface Window {
+    google?: {
+      accounts: {
+        id: {
+          initialize(options: { client_id: string; callback: (response: { credential: string }) => void }): void;
+          renderButton(parent: HTMLElement, options: { theme: string; size: string }): void;
+        };
+      };
+    };
+  }
+}
+
+async function loadGoogleScript() {
+  if (window.google) return;
+  await new Promise<void>((resolve, reject) => {
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.onload = () => resolve();
+    script.onerror = () => reject(new Error("Không tải được Google Sign-In"));
+    document.head.append(script);
+  });
+}
+
+export async function setupApp(element: HTMLElement) {
+  element.replaceChildren();
   const shell = document.createElement("section");
   shell.className = "shell";
-
-  const badge = document.createElement("p");
-  badge.className = "badge";
-  badge.textContent = "Nitro workspace starter";
-
   const title = document.createElement("h1");
-  title.textContent = "CAPTCHA and face verification workspace";
-
+  title.textContent = "CAPTCHA và xác thực khuôn mặt";
   const intro = document.createElement("p");
   intro.className = "intro";
-  intro.textContent =
-    "A compact Nitro app shell for Google sign-in, CAPTCHA challenges, face enrollment, liveness checks, and session-aware APIs.";
+  intro.textContent = "Đăng nhập Google để bắt đầu bước camera và xác thực khuôn mặt.";
+  const status = document.createElement("p");
+  status.className = "status";
+  status.setAttribute("role", "status");
+  status.textContent = "Đang kiểm tra phiên đăng nhập...";
+  const googleButton = document.createElement("div");
+  googleButton.className = "google-button";
+  const logoutButton = document.createElement("button");
+  logoutButton.type = "button";
+  logoutButton.textContent = "Đăng xuất";
+  logoutButton.hidden = true;
+  const faceCamera = createFaceCamera();
+  const profileArea = createProfileArea();
 
-  const grid = document.createElement("div");
-  grid.className = "feature-grid";
-  grid.append(
-    createFeature(
-      "Authentication",
-      "Google sign-in, session creation, logout, and account recovery flows.",
-    ),
-    createFeature(
-      "Challenge flow",
-      "Session-bound CAPTCHA challenges with replay protection and rate limiting.",
-    ),
-    createFeature(
-      "Face security",
-      "Face enrollment, verification, and PAD/liveness checks for high-risk actions.",
-    ),
-  );
+  function showSession(session: SessionResponse) {
+    googleButton.hidden = session.authenticated;
+    logoutButton.hidden = !session.authenticated;
+    faceCamera.setAuthenticated(session.authenticated);
+    profileArea.setAuthenticated(session.authenticated);
+    status.textContent = session.authenticated
+      ? `Đã đăng nhập: ${session.user?.name || session.user?.email}`
+      : "Chưa đăng nhập.";
+  }
 
-  const controls = document.createElement("div");
-  controls.className = "controls";
-
-  const helloPanel = createPanel(
-    "Hello endpoint",
-    "Use this to verify the server is reachable.",
-  );
-  const helloOutput = helloPanel.querySelector("pre") as HTMLPreElement;
-
-  const healthPanel = createPanel(
-    "Health endpoint",
-    "A quick readiness check for the Nitro app.",
-  );
-  const healthOutput = healthPanel.querySelector("pre") as HTMLPreElement;
-
-  const helloButton = createButton("Call /api/hello", async () => {
-    helloOutput.textContent = "Loading...";
-    const response = await fetch("/api/hello");
-    const payload = await response.json();
-    helloOutput.textContent = JSON.stringify(payload, null, 2);
+  logoutButton.addEventListener("click", async () => {
+    try {
+      const response = await fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" });
+      if (!response.ok) throw new Error("Không thể đăng xuất");
+      showSession({ authenticated: false, user: null });
+    } catch (error) {
+      status.textContent = error instanceof Error ? error.message : "Đăng xuất thất bại";
+    }
   });
 
-  const healthButton = createButton("Call /api/health", async () => {
-    healthOutput.textContent = "Loading...";
-    const response = await fetch("/api/health");
-    const payload = await response.json();
-    healthOutput.textContent = JSON.stringify(payload, null, 2);
-  });
+  shell.append(title, intro, status, googleButton, logoutButton, faceCamera.element, profileArea.element);
+  element.append(shell);
 
-  controls.append(helloButton, healthButton);
-
-  const outputs = document.createElement("div");
-  outputs.className = "output-grid";
-  outputs.append(helloPanel, healthPanel);
-
-  shell.append(badge, title, intro, grid, controls, outputs);
-  element.appendChild(shell);
-}
-
-function createFeature(title: string, description: string) {
-  const article = document.createElement("article");
-  article.className = "feature-card";
-
-  const heading = document.createElement("h2");
-  heading.textContent = title;
-
-  const body = document.createElement("p");
-  body.textContent = description;
-
-  article.append(heading, body);
-  return article;
-}
-
-function createPanel(title: string, description: string) {
-  const article = document.createElement("article");
-  article.className = "panel";
-
-  const heading = document.createElement("h2");
-  heading.textContent = title;
-
-  const body = document.createElement("p");
-  body.textContent = description;
-
-  const output = document.createElement("pre");
-  output.textContent = "Click the button above to load a response.";
-
-  article.append(heading, body, output);
-  return article;
-}
-
-function createButton(label: string, onClick: () => Promise<void>) {
-  const button = document.createElement("button");
-  button.type = "button";
-  button.textContent = label;
-  button.addEventListener("click", () => {
-    void onClick();
-  });
-  return button;
+  try {
+    const [sessionResponse, configResponse] = await Promise.all([
+      fetch("/api/auth/session"),
+      fetch("/api/auth/config"),
+    ]);
+    if (!sessionResponse.ok || !configResponse.ok) throw new Error("Không thể kết nối dịch vụ đăng nhập");
+    const session = await sessionResponse.json() as SessionResponse;
+    const config = await configResponse.json() as { enabled: boolean; googleClientId: string; appOrigin: string };
+    if (window.location.origin !== config.appOrigin) {
+      const target = new URL(window.location.pathname + window.location.search + window.location.hash, config.appOrigin);
+      window.location.replace(target.href);
+      return;
+    }
+    showSession(session);
+    if (!config.enabled) {
+      status.textContent = session.authenticated
+        ? status.textContent
+        : "Chưa cấu hình GOOGLE_CLIENT_ID. Xem hướng dẫn trong README.";
+      return;
+    }
+    await loadGoogleScript();
+    if (!window.google) throw new Error("Không thể khởi tạo Google Sign-In");
+    window.google.accounts.id.initialize({
+      client_id: config.googleClientId,
+      callback: async ({ credential }) => {
+        try {
+          status.textContent = "Đang xác minh Google...";
+          const response = await fetch("/api/auth/google/credential", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            credentials: "same-origin",
+            body: JSON.stringify({ credential }),
+          });
+          if (!response.ok) {
+            const details: Record<number, string> = {
+              400: "Dữ liệu đăng nhập không hợp lệ.",
+              401: "Google token không được chấp nhận. Hãy thử đăng nhập lại.",
+              403: "Yêu cầu không được phép hoặc tài khoản đã bị khóa.",
+              409: "Email đã thuộc một tài khoản khác.",
+              503: "Dịch vụ đăng nhập chưa được cấu hình.",
+            };
+            throw new Error(`Đăng nhập thất bại (HTTP ${response.status}). ${details[response.status] || "Vui lòng thử lại."}`);
+          }
+          showSession(await response.json() as SessionResponse);
+        } catch (error) {
+          status.textContent = error instanceof Error ? error.message : "Đăng nhập thất bại";
+        }
+      },
+    });
+    window.google.accounts.id.renderButton(googleButton, { theme: "outline", size: "large" });
+  } catch (error) {
+    status.textContent = error instanceof Error ? error.message : "Không thể tải ứng dụng";
+  }
 }

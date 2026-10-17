@@ -1,0 +1,1 @@
+CREATE UNIQUE INDEX "biometric_templates_active_user_idx" ON "biometric_templates" USING btree ("user_id") WHERE "biometric_templates"."revoked_at" is null;

@@ -8,6 +8,27 @@
       "when": 1791712644184,
       "tag": "0000_natural_warpath",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792059043912,
+      "tag": "0001_wakeful_xorn",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792073755414,
+      "tag": "0002_outgoing_blink",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792076245343,
+      "tag": "0003_romantic_imperial_guard",
+      "breakpoints": true
     }
   ]
 }

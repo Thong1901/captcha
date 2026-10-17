@@ -68,6 +68,50 @@ h1 {
   font-size: 1.05rem;
 }
 
+.status { margin: 1.5rem 0; color: #dbeafe; }
+.google-button { margin-top: 1rem; }
+[hidden] { display: none !important; }
+
+.face-panel {
+  margin-top: 1.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid rgba(148, 163, 184, 0.2);
+}
+
+.face-panel h2 { margin: 0 0 0.5rem; }
+.face-panel p { color: #cbd5e1; }
+.face-status { min-height: 1.5rem; }
+.face-consent { display: block; margin-top: 1rem; color: #dbeafe; }
+.face-consent input { margin-right: 0.35rem; }
+.face-disclaimer { margin-top: 1rem; font-size: 0.9rem; }
+.face-preview {
+  display: block;
+  width: min(100%, 640px);
+  max-height: 480px;
+  object-fit: contain;
+  border-radius: 14px;
+  background: #020617;
+}
+
+button:disabled { cursor: not-allowed; opacity: 0.5; }
+button:disabled:hover { transform: none; box-shadow: none; }
+
+.profile-area { margin-top: 2rem; border-top: 1px solid rgba(148, 163, 184, 0.2); padding-top: 1.5rem; }
+.profile-area h2 { margin-top: 0; }
+.profile-card { margin-top: 1.5rem; padding: 1.25rem; border: 1px solid rgba(148, 163, 184, 0.25); border-radius: 16px; }
+.profile-card h3 { margin-top: 0; }
+.profile-card dl { display: grid; grid-template-columns: minmax(110px, 160px) 1fr; gap: 0.4rem 1rem; }
+.profile-card dt { color: #93c5fd; }
+.profile-card dd { margin: 0; overflow-wrap: anywhere; }
+.profile-portrait { width: min(240px, 100%); height: auto; border-radius: 12px; }
+.profile-form { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 0.8rem; margin-top: 1.25rem; }
+.profile-form h4 { grid-column: 1 / -1; margin: 0; }
+.profile-form label { display: grid; gap: 0.35rem; color: #cbd5e1; }
+.profile-form input, .profile-form select { min-width: 0; padding: 0.65rem; border-radius: 8px; border: 1px solid #64748b; background: #0f172a; color: #eff6ff; font: inherit; }
+.profile-form button { align-self: end; }
+.profile-list { display: flex; flex-wrap: wrap; gap: 0.5rem; list-style: none; padding: 0; }
+.profile-list button { font-size: 0.9rem; }
+
 .feature-grid,
 .output-grid {
   display: grid;
